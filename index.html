@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Cube Blaster 3D</title>
+    <style>body { margin: 0; overflow: hidden; background: black; }</style>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  </head>
+  <body>
+    <script>
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      camera.position.z = 10;
+
+      const bullets = [];
+      const enemies = [];
+
+      const geometry = new THREE.BoxGeometry();
+      const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+      const player = new THREE.Mesh(geometry, material);
+      player.scale.set(1, 1, 1);
+      scene.add(player);
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowLeft") player.position.x -= 0.5;
+        if (e.key === "ArrowRight") player.position.x += 0.5;
+        if (e.key === " ") shoot();
+      });
+
+      function shoot() {
+        const bulletGeo = new THREE.SphereGeometry(0.1, 8, 8);
+        const bulletMat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+        const bullet = new THREE.Mesh(bulletGeo, bulletMat);
+        bullet.position.copy(player.position);
+        bullets.push(bullet);
+        scene.add(bullet);
+      }
+
+      function spawnEnemy() {
+        const enemyGeo = new THREE.BoxGeometry(1, 1, 1);
+        const enemyMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const enemy = new THREE.Mesh(enemyGeo, enemyMat);
+        enemy.position.set((Math.random() - 0.5) * 20, (Math.random() - 0.5) * 10, -50);
+        enemies.push(enemy);
+        scene.add(enemy);
+      }
+
+      setInterval(spawnEnemy, 800);
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        bullets.forEach((b, i) => {
+          b.position.z -= 1;
+          if (b.position.z < -100) {
+            scene.remove(b);
+            bullets.splice(i, 1);
+          }
+        });
+
+        enemies.forEach((e, i) => {
+          e.position.z += 0.3;
+          if (e.position.z > 20) {
+            scene.remove(e);
+            enemies.splice(i, 1);
+          }
+
+          bullets.forEach((b, j) => {
+            if (e.position.distanceTo(b.position) < 0.6) {
+              scene.remove(e);
+              scene.remove(b);
+              enemies.splice(i, 1);
+              bullets.splice(j, 1);
+            }
+          });
+        });
+
+        renderer.render(scene, camera);
+      }
+
+      animate();
+    </script>
+  </body>
+</html>
