@@ -1,11 +1,23 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Galaxy Dodger 3D</title>
-    <style>body { margin: 0; overflow: hidden; background: black; }</style>
+    <title>Galaxy Dodger 3D - With Score</title>
+    <style>
+      body { margin: 0; overflow: hidden; background: black; font-family: sans-serif; color: white; }
+      #score {
+        position: absolute;
+        top: 10px;
+        left: 20px;
+        font-size: 24px;
+        background: rgba(0,0,0,0.5);
+        padding: 8px 16px;
+        border-radius: 10px;
+      }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   </head>
   <body>
+    <div id="score">Score: 0</div>
     <script>
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
@@ -13,12 +25,10 @@
       renderer.setSize(innerWidth, innerHeight);
       document.body.appendChild(renderer.domElement);
 
-      // Lighting that SLAPS
       const light = new THREE.PointLight(0xffffff, 1);
       light.position.set(0, 10, 10);
       scene.add(light);
 
-      // Player orb with glowing vibes
       const playerGeo = new THREE.SphereGeometry(0.5, 32, 32);
       const playerMat = new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x00ffff });
       const player = new THREE.Mesh(playerGeo, playerMat);
@@ -45,10 +55,18 @@
       document.addEventListener('keydown', e => keys[e.key] = true);
       document.addEventListener('keyup', e => keys[e.key] = false);
 
-      // Camera angle
       camera.position.z = 10;
       camera.position.y = 2;
       camera.lookAt(player.position);
+
+      let score = 0;
+      const scoreDisplay = document.getElementById('score');
+
+      // Score increments every second
+      const scoreInterval = setInterval(() => {
+        score++;
+        scoreDisplay.textContent = `Score: ${score}`;
+      }, 1000);
 
       function animate() {
         requestAnimationFrame(animate);
@@ -69,7 +87,8 @@
             obstacles.splice(i, 1);
           }
           if (b.position.distanceTo(player.position) < 1) {
-            alert("💀 YOU GOT SMACKED! Refresh to try again.");
+            clearInterval(scoreInterval);
+            alert("💀 YOU GOT BLASTED! Final Score: " + score);
             location.reload();
           }
         });
